@@ -13,7 +13,6 @@ const Home = () => {
         ML-Powered Prompts is a collection of AI-powered prompts designed to
         help you understand your business needs.
       </p>
-
       <Feed />
     </section>
   );

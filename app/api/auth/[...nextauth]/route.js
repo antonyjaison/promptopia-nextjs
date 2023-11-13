@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { connectToDb } from "@utils/database";
 import User from "@models/user";
 
+
 const handler = NextAuth({
   providers: [
     GoogleProvider({
@@ -11,37 +12,39 @@ const handler = NextAuth({
     }),
   ],
 
-  async session({ session }) {
-    const sessionUser = await User.findOne({
-      email: session.user.email,
-    });
-    session.user.id = sessionUser._id.toString();
-    return session;
-  },
-
-  async signIn({ profile }) {
-    try {
-      await connectToDb();
-
-      // check if a user already exist
-      const userExist = User.findOne({
-        email: profile.email,
+  callbacks: {
+    async session({ session }) {
+      const sessionUser = await User.findOne({
+        email: session.user.email,
       });
+      session.user.id = sessionUser._id.toString();
+      return session;
+    },
 
-      // if not, create new user
-      if (!userExist) {
-        User.create({
-          username: profile.name.replace(" ", "").toLowerCase(),
+    async signIn({ profile }) {
+      try {
+        await connectToDb();
+
+        // check if a user already exist
+        const userExist = await User.findOne({
           email: profile.email,
-          image: profile.picture,
         });
-      }
 
-      return true;
-    } catch (error) {
-      console.log(error);
-      return false;
-    }
+        // if not, create new user
+        if (!userExist) {
+          await User.create({
+            username: profile.name.replace(" ", "").toLowerCase(),
+            email: profile.email,
+            image: profile.picture,
+          });
+        }
+
+        return true;
+      } catch (error) {
+        console.log(error);
+        return false;
+      }
+    },
   },
 });
 
